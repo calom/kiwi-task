@@ -24,13 +24,6 @@ def getLocationsInfo(city):
     return r
 
 
-def getAirportCode(city):
-    locations = getLocationsInfo(city)['locations']
-    airport_code = locations[0]['code'] if locations is not None else 'invalid'
-    # return getLocationsInfo(city)['locations']['code']
-    return airport_code
-
-
 def getBookingToken(city_from, city_to):
     params = {
         'partner': PARTNER_ID,
@@ -74,21 +67,20 @@ if __name__ == '__main__':
     CITY_FROM = 'New York JFK'
     CITY_TO = 'Vienna'
 
-    vienna_code = getAirportCode(CITY_FROM)
-    jfk_to = getAirportCode(CITY_TO)
-
     # Verify JFK:
     jfk = getLocationsInfo(CITY_FROM)['locations'][0]
     assert jfk['name'] == 'John F. Kennedy International'
     assert jfk['int_id'] == 8353
+    jfk_code = jfk['code']
 
     # Verify Vienna
     vienna = getLocationsInfo(CITY_TO)['locations'][0]
     assert vienna['name'] == 'Vienna International Airport'
     assert vienna['int_id'] == 6639
+    vienna_code = vienna['code']
 
     # Get booking token for checking flights
-    booking_token = getBookingToken(vienna_code, jfk_to)
+    booking_token = getBookingToken(vienna_code, jfk_code)
 
     # Check flights are available
     print(checkFlights(booking_token, 300))
