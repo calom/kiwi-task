@@ -1,12 +1,13 @@
-import time
-import requests
+from time import sleep, time, ctime
+from requests import get
+from sys import argv
 
 HEADERS = {
     'Content-Type': 'application/json'
 }
 HTTPS = 'https'
 SKYPICKER_DOMAIN = 'api.skypicker.com'
-PARTNER_ID = 'checker969checker969'
+PARTNER_ID = argv[1]
 
 
 def getLocationsInfo(city):
@@ -19,7 +20,7 @@ def getLocationsInfo(city):
         'sort': 'name'
     }
     url = f'{HTTPS}://{SKYPICKER_DOMAIN}/locations'
-    r = requests.get(url, headers=HEADERS, params=params).json()
+    r = get(url, headers=HEADERS, params=params).json()
     return r
 
 
@@ -37,12 +38,12 @@ def getBookingToken(city_from, city_to):
         'fly_to': f'airport:{city_to}'
     }
     url = f'{HTTPS}://{SKYPICKER_DOMAIN}/flights'
-    r = requests.get(url, headers=HEADERS, params=params).json()
+    r = get(url, headers=HEADERS, params=params).json()
     token = r['data'][0]['booking_token']
     return token
 
 
-def checkFlights(token):
+def checkFlights(token, timeout, delta=15):
     params = {
         'v': 2,
         'booking_token': token,
@@ -54,8 +55,18 @@ def checkFlights(token):
         'infants': 0
     }
     url = f'{HTTPS}://booking-{SKYPICKER_DOMAIN}/api/v0.1/check_flights'
-    r = requests.get(url, headers=HEADERS, params=params).json()
-    return r
+    flights = get(url, headers=HEADERS, params=params).json()
+
+    time_limit = time() + timeout
+    message = 'Flights check failed'
+    while time_limit > time():
+        if flights['flights_invalid'] is False and flights['flights_checked'] is True and flights[
+            'flights_to_check'] is False:
+            message = 'Flight successfully checked'
+            break
+        print(f'Checking flights until {ctime(time_limit)}')
+        sleep(delta)
+    return message
 
 
 # Press the green button in the gutter to run the script.
@@ -75,12 +86,9 @@ if __name__ == '__main__':
     vienna = getLocationsInfo(CITY_TO)['locations'][0]
     assert vienna['name'] == 'Vienna International Airport'
     assert vienna['int_id'] == 6639
+
+    # Get booking token for checking flights
     booking_token = getBookingToken(vienna_code, jfk_to)
 
-    while True:
-        flights = checkFlights(booking_token)
-        if flights['flights_invalid'] is False and flights['flights_checked'] is True and flights[
-            'flights_to_check'] is False:
-            break
-        time.sleep(15)  # very basic but serves the purpose, async not necessary
-    print('Flight successfully checked')
+    # Check flights are available
+    print(checkFlights(booking_token, 300))
