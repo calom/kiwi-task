@@ -1,13 +1,3 @@
-# Based on public documentation, create following requests and attach your coding solution. The
-# goal is to successfully call check_flights.
-# Request connection from Vienna to JFK airport in New York, using our flight_API. Based on
-# response from flight_API build request to check_flights for 1 adult passenger, 0 childs and
-# infants.
-# ○ Optional: verify locations (Vienna & JFK )via locations_API, before you call flight_API
-# Conditions for successful check_flights call:
-# ● flights_to_check: false
-# ● flights_checked: true
-# ● flights_invalid: false (If true not a big deal post solution anyway)
 import time
 import requests
 
